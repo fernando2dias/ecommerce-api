@@ -1,14 +1,6 @@
 import { Request, Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
 
-interface User {
-    id: number; 
-    name: string;
-    email: string;
-}
-
-let users: User[] = [];
-
 export class UsersController {
     
     static async getAll(req: Request, res: Response){
@@ -24,42 +16,35 @@ export class UsersController {
         res.send(userss);
     }
 
-    static getById(req: Request, res: Response){
-        let userId = Number(req.params.id);
-        let user = users.find(user => user.id === userId);
+    static async getById(req: Request, res: Response){
+        let userId = req.params.id;
+        const doc = await getFirestore().collection("users").doc(userId).get();
+        let user = {
+            id: doc.id,
+            ...doc.data()
+        };
+        
         res.send(user);
     };
 
-    static delete(req: Request, res: Response){
-        let userId = Number(req.params.id);
-        let userIndex = users.findIndex((user) => user.id === userId);
-    
-        if (userIndex === -1) {
-            res.status(404).send({ message: "User not found" });
-        }
-    
-        users.splice(userIndex, 1);
+    static async delete(req: Request, res: Response){
+        let userId = req.params.id;
+        await getFirestore().collection("users").doc(userId).delete();
     
         res.send({
             message: "User was deleted!"
         });
     }
 
-    static update(req: Request, res: Response){
-        let userId = Number(req.params.id);
-        let userEdited = req.body;
-        let userIndex = users.findIndex((user) => user.id === userId);
-    
-        if (userIndex === -1) {
-            res.status(404).send({ message: "User not found" });
-        }
-    
-        users[userIndex] = {
-             id: userId,
-             name: userEdited.name,
-             email: userEdited.email,
-        };
-    
+    static async update(req: Request, res: Response){
+        let userId = req.params.id;
+        let user = req.body;
+        
+        await getFirestore().collection("users").doc(userId).set({
+            name: user.name,
+            email: user.email
+        });
+
         res.send({message: "User updated successfully"});
     }
 
