@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
+import { initializeApp } from 'firebase-admin/app';
 import {routes} from './routes/index'
 
+initializeApp();
 const app = express();
 
 app.get('/', (req: Request, res: Response) => {

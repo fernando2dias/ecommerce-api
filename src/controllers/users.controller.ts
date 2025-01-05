@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
+import { getFirestore } from "firebase-admin/firestore";
 
-let id = 1;
 interface User {
     id: number; 
     name: string;
@@ -11,8 +11,17 @@ let users: User[] = [];
 
 export class UsersController {
     
-    static getAll(req: Request, res: Response){
-        res.send(users);
+    static async getAll(req: Request, res: Response){
+        const snapshot = await getFirestore().collection("users").get();
+        const userss = snapshot.docs.map(doc => {
+            return {
+                id: doc.id,
+                ...doc.data()
+            };
+        });
+
+
+        res.send(userss);
     }
 
     static getById(req: Request, res: Response){
@@ -54,12 +63,13 @@ export class UsersController {
         res.send({message: "User updated successfully"});
     }
 
-    static save(req: Request, res: Response){
+    static async save(req: Request, res: Response){
         let user = req.body;
-        user.id = id++;
-        users.push(user);
+        
+        const result = await getFirestore().collection("users").add(user);
+
         res.send({
-            message: "User was created!"
+            message: `User was created! ID: ${result.id}`
         });
     }
 }
