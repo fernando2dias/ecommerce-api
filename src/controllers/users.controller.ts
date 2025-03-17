@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { getFirestore } from "firebase-admin/firestore";
+import { ValidationError } from "../errors/validation.error";
+import { NotFoundError } from "../errors/not-found.error";
 
 export class UsersController {
 
@@ -24,12 +26,14 @@ export class UsersController {
         try {
             let userId = req.params.id;
             const doc = await getFirestore().collection("users").doc(userId).get();
-            let user = {
+            if(doc.exists){
+            res.send({
                 id: doc.id,
                 ...doc.data()
-            };
-
-            res.send(user);
+            });
+        } else {
+            throw new NotFoundError("User is not found!");
+        }        
 
         } catch (error) {
             next(error);
@@ -39,9 +43,14 @@ export class UsersController {
     static async delete(req: Request, res: Response, next: NextFunction) {
         try {
             let userId = req.params.id;
-            await getFirestore().collection("users").doc(userId).delete();
-
+            let docRef = getFirestore().collection("users").doc(userId);
+            if((await docRef.get()).exists){
+                docRef.delete();
             res.status(204).end();
+            }else{
+                throw new NotFoundError("User is not found!");
+            }          
+            
 
         } catch (error) {
             next(error);
@@ -52,13 +61,18 @@ export class UsersController {
         try {
             let userId = req.params.id;
             let user = req.body;
+            let docRef = getFirestore().collection("users").doc(userId);
 
-            await getFirestore().collection("users").doc(userId).set({
-                name: user.name,
-                email: user.email
-            });
+            if((await docRef.get()).exists){
+                await docRef.set({
+                    name: user.name,
+                    email: user.email
+                });
+                res.send({ message: "User updated successfully" });
+            }else{
+                throw new NotFoundError("User is not found!");
+            }
 
-            res.send({ message: "User updated successfully" });
 
         } catch (error) {
             next(error);
@@ -69,6 +83,9 @@ export class UsersController {
     static async save(req: Request, res: Response, next: NextFunction) {
         try {
             let user = req.body;
+            if(!user.email || user.email?.lenght === 0){
+                throw new ValidationError("E-mail obrigatório!");
+            }
             const result = await getFirestore().collection("users").add(user);
 
             res.status(201).send({
