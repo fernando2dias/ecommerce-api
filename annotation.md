@@ -1,0 +1,1 @@
+"start": "npx tsc-watch --onSuccess \"node --env-file=.env ./lib/index.js\"",
