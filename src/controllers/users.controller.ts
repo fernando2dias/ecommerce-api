@@ -1,69 +1,39 @@
 import { NextFunction, Request, Response } from "express";
-import { getFirestore } from "firebase-admin/firestore";
-import { NotFoundError } from "../errors/not-found.error";
+import { User } from "../models/user.model";
+import { UserService } from "../services/user.services";
 
 export class UsersController {
 
     static async getAll(req: Request, res: Response, next: NextFunction) {
-        const snapshot = await getFirestore().collection("users").get();
-        const users = snapshot.docs.map(doc => {
-            return {
-                id: doc.id,
-                ...doc.data()
-            };
-        });
-
-        res.send(users);
+        res.send(await new UserService().getAll());
     }
 
     static async getById(req: Request, res: Response, next: NextFunction) {
-        let userId = req.params.id;
-        const doc = await getFirestore().collection("users").doc(userId).get();
-        if (doc.exists) {
-            res.send({
-                id: doc.id,
-                ...doc.data()
-            });
-        } else {
-            throw new NotFoundError("User is not found!");
-        }
-    };
+        res.send(await new UserService().getById(req.params.id));
+    }
 
     static async delete(req: Request, res: Response, next: NextFunction) {
-        let userId = req.params.id;
-        let docRef = getFirestore().collection("users").doc(userId);
-        if ((await docRef.get()).exists) {
-            docRef.delete();
-            res.status(204).end();
-        } else {
-            throw new NotFoundError("User is not found!");
-        }
+        await new UserService().delete(req.params.id);
+        res.status(204).end();
     }
 
     static async update(req: Request, res: Response, next: NextFunction) {
-        let userId = req.params.id;
-        let user = req.body;
-        let docRef = getFirestore().collection("users").doc(userId);
+        let user = req.body as User;
+        user.id = req.params.id;
 
-        if ((await docRef.get()).exists) {
-            await docRef.set({
-                name: user.name,
-                email: user.email
-            });
-            res.send({ message: "User updated successfully" });
-        } else {
-            throw new NotFoundError("User is not found!");
-        }
+        await new UserService().update(user)
+
+        res.send({ message: "User updated successfully" });
+
 
     }
 
     static async save(req: Request, res: Response, next: NextFunction) {
-        let user = req.body;
-        
-        const result = await getFirestore().collection("users").add(user);
+        let user = req.body as User;
+        let savedUserId = await new UserService().save(user)
 
         res.status(201).send({
-            message: `User was created! ID: ${result.id}`
+            messaage: `User ${savedUserId} was created!`
         });
     }
 }
