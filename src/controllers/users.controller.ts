@@ -24,8 +24,6 @@ export class UsersController {
         await new UserService().update(user)
 
         res.send({ message: "User updated successfully" });
-
-
     }
 
     static async save(req: Request, res: Response, next: NextFunction) {
