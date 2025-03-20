@@ -33,6 +33,7 @@ export class UserRepository {
     }
 
     async save(user: User): Promise<string> {
+        delete user.password;
         let userSaved = await this.collection.add(user);
         return userSaved.id
     }

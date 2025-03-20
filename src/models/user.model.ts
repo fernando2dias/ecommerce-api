@@ -5,11 +5,12 @@ export type User = {
     name: string;
     email: string;
     age: number;
+    password?: string;
 }
 
 export const userSchema = {
-    id: Joi.string(),
     name: Joi.string().required(),
     email: Joi.string().email().required(),
-    age: Joi.number().required()
+    age: Joi.number().required(),
+    password: Joi.string().min(6).required()
 }
