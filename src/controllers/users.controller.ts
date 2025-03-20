@@ -5,6 +5,7 @@ import { UserService } from "../services/user.services";
 export class UsersController {
 
     static async getAll(req: Request, res: Response, next: NextFunction) {
+        //console.log(`Get All -> UserId: ${req.user.id}`);
         res.send(await new UserService().getAll());
     }
 
