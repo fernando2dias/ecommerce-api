@@ -8,9 +8,14 @@ export type User = {
     password?: string;
 }
 
-export const userSchema = {
+export const userSchema = Joi.object().keys({
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     age: Joi.number().required(),
     password: Joi.string().min(6).required()
-}
+});
+
+export const authLoginSchema = Joi.object().keys({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).required()
+});
