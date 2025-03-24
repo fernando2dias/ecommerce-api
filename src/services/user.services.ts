@@ -42,10 +42,12 @@ export class UserService {
         }
 
         _user = user;
+        await this.authService.update(_user.id, user)
         await this.userRepository.update(_user);
     }
 
     async delete(id: string): Promise<void> {
+        await this.authService.delete(id);
         await this.userRepository.delete(id);
     }
 
