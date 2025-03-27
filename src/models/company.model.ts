@@ -14,7 +14,7 @@ export type Company = {
 }
 
 export const CompanySchema = Joi.object().keys({
-    brand: Joi.allow(null),
+    brand: Joi.string().base64().required(),
     document: Joi.alternatives().try(
         Joi.string().length(11).required(),
         Joi.string().length(14).required()

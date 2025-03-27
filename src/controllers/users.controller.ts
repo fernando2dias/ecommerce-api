@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { User } from "../models/user.model";
-import { UserService } from "../services/user.services";
+import { User } from "../models/user.model.js";
+import { UserService } from "../services/user.services.js";
 
 export class UsersController {
 
