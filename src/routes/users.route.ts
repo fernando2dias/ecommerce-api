@@ -4,10 +4,10 @@ import asyncHandler from "express-async-handler"
 import { celebrate, Segments } from "celebrate";
 import { newUserSchema, updateUserSchema } from "../models/user.model.js";
 
-export const userRouters = express.Router();
+export const userRoutes = express.Router();
 
-userRouters.get("/users", asyncHandler(UsersController.getAll));
-userRouters.get("/users/:id", asyncHandler(UsersController.getById));
-userRouters.delete("/users/:id", asyncHandler(UsersController.delete));
-userRouters.put("/users/:id", celebrate({[Segments.BODY]: updateUserSchema}), asyncHandler(UsersController.update));
-userRouters.post("/users", celebrate({[Segments.BODY]: newUserSchema}), asyncHandler(UsersController.save));
+userRoutes.get("/users", asyncHandler(UsersController.getAll));
+userRoutes.get("/users/:id", asyncHandler(UsersController.getById));
+userRoutes.delete("/users/:id", asyncHandler(UsersController.delete));
+userRoutes.put("/users/:id", celebrate({[Segments.BODY]: updateUserSchema}), asyncHandler(UsersController.update));
+userRoutes.post("/users", celebrate({[Segments.BODY]: newUserSchema}), asyncHandler(UsersController.save));

@@ -35,11 +35,7 @@ export class UserService {
     }
 
     async update(user: User): Promise<void> {
-        let _user = await this.userRepository.getById(user.id);
-
-        if (!_user) {
-            throw new NotFoundError("User is not found!");
-        }
+        let _user = await this.getById(user.id);
 
         _user = user;
         await this.authService.update(_user.id, user)

@@ -36,11 +36,7 @@ export class CompanyService {
     }
 
     async update(company: Company): Promise<void> {
-        let _company = await this.companyRepository.getById(company.id);
-
-        if (!_company) {
-            throw new NotFoundError("Company is not found!");
-        }
+        let _company = await this.getById(company.id);
 
         if(!this.isValidUrl(company.brand)){
            _company.brand = await this.uploadFileService.upload(company.brand);
