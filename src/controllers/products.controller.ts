@@ -9,6 +9,11 @@ export class ProductsController {
         res.send(await new ProductService().getAll());
     }
 
+    static async search(req: Request, res:Response){
+       const categoryId = req.query.categoryId as string;
+       res.send(await new ProductService().search(categoryId));
+    }
+
     static async getById(req: Request, res: Response) {
         res.send(await new ProductService().getById(req.params.id));
     }

@@ -20,6 +20,15 @@ export class ProductService {
         return this.productRepository.getAll();
     }
 
+    async search(categoryId: string): Promise<Product[]>{
+
+        // if(this.categoryRepository.getById(categoryId)){
+
+        // }
+
+        return this.productRepository.search(categoryId);
+    }
+
     async getById(id: string): Promise<Product> {
         const product = await this.productRepository.getById(id);
 
@@ -53,7 +62,7 @@ export class ProductService {
         let _category = await this.getCategory(product.category.id);
         
         
-        if (!this.isValidUrl(product.image)) {
+        if (product.image && !this.isValidUrl(product.image)) {
             _product.image = await this.uploadFileService.upload(product.image);
             
         }

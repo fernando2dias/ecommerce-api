@@ -1,12 +1,16 @@
 import { NotFoundError } from "../errors/not-found.error.js";
+import { ValidationError } from "../errors/validation.error.js";
 import { Category } from "../models/category.model.js";
 import { CategoryRepository } from "../repositories/category.repository.js";
+import { ProductRepository } from "../repositories/product.repository.js";
 
 export class CategoryService {
     private categoryRepository: CategoryRepository;
+    private productRepository: ProductRepository;
 
     constructor() {
         this.categoryRepository = new CategoryRepository();
+        this.productRepository = new ProductRepository();
     }
 
     async getAll(): Promise<Category[]> {
@@ -37,6 +41,9 @@ export class CategoryService {
     }
 
     async delete(id: string): Promise<void> {
+        if(await this.productRepository.getCountCategory(id) > 0){
+            throw new ValidationError("Is not possible, there product with this category.");
+        }
         await this.categoryRepository.delete(id);
     }
 
