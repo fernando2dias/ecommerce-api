@@ -1,6 +1,6 @@
 import { Product } from "./product.model.js";
 
-export type OrderItems = {
+export type OrderItem = {
     product: Product;
     quantity: number;
     observation: string;

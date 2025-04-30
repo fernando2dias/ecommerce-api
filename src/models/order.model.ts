@@ -1,9 +1,9 @@
 import { Joi } from "celebrate";
 import { Address, orderAddressSchema } from "./address.model.js";
 import { Company } from "./company.model.js"
-import { OrderItems } from "./ordem-item.model.js";
+import { OrderItem as OrderItem } from "./ordem-item.model.js";
 import { PaymentMethod } from "./payment-method.js";
-import { Customer, customerSchema } from "./Customer.model.js";
+import { Customer, customerSchema } from "./customer.model.js";
 
 export type Order = {
     company: Company;
@@ -14,7 +14,7 @@ export type Order = {
     isDelivery: boolean;
     paymentMethod: PaymentMethod;
     deliveryTax: number;
-    items: OrderItems[];
+    items: OrderItem[];
     status: OrderStatus;
 }
 

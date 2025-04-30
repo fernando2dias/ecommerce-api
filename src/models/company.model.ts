@@ -1,4 +1,5 @@
 import { Joi } from "celebrate";
+import { phoneRegexPattern } from "../utils/regex-utils.js";
 
 export type Company = {
     id: string;
@@ -20,7 +21,7 @@ export const CompanySchema = Joi.object().keys({
         Joi.string().length(14).required()
     ).required(),
     companyName: Joi.string().required(),
-    phone: Joi.string().regex(/(^[1-9]{1}[0-9]{1}[0-9]{8}$)|(^[1-9]{1}[0-9]{1}[9]{1}[0-9]{8}$)/).required(),
+    phone: Joi.string().regex(phoneRegexPattern).required(),
     openingHours: Joi.string().required(),
     address: Joi.string().required(),
     location: Joi.string().required(),
@@ -38,7 +39,7 @@ export const CompanySchemaUpdate = Joi.object().keys({
         Joi.string().length(14).required()
     ).required(),
     companyName: Joi.string().required(),
-    phone: Joi.string().regex(/(^[1-9]{1}[0-9]{1}[0-9]{8}$)|(^[1-9]{1}[0-9]{1}[9]{1}[0-9]{8}$)/).required(),
+    phone: Joi.string().regex(phoneRegexPattern).required(),
     openingHours: Joi.string().required(),
     address: Joi.string().required(),
     location: Joi.string().required(),
