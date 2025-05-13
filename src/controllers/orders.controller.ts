@@ -1,8 +1,18 @@
 import {Request, Response} from "express"
+import { OrderService } from "../services/order.service.js";
+import { Order, QueryParamsOrder } from "../models/order.model.js";
  
 export class OrdersController {
-    static save(req: Request, res: Response){
-        console.log(req.body);
-        res.send(req.body);
+    static async save(req: Request, res: Response){
+        const order = req.body as Order;
+        await new OrderService().save(order);
+        res.status(201).json({
+            message: "Order created successfully",
+    });
+    }
+
+    static async search(req: Request, res: Response){
+       const orders = await new OrderService().search(req.query as QueryParamsOrder)
+        res.send(orders);
     }
 }

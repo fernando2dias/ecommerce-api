@@ -1,7 +1,7 @@
 import { Joi } from "celebrate";
 import { Address, orderAddressSchema } from "./address.model.js";
 import { Company } from "./company.model.js"
-import { OrderItem as OrderItem } from "./ordem-item.model.js";
+import { OrderItem as OrderItem, orderItemSchema } from "./ordem-item.model.js";
 import { PaymentMethod } from "./payment-method.js";
 import { Customer, customerSchema } from "./customer.model.js";
 
@@ -31,7 +31,13 @@ export const newOrderSchema = Joi.object().keys({
         id: Joi.string().trim().required()
     }).required(),
     customer: customerSchema.required(),
-    address: orderAddressSchema.required(),
+    address: Joi.alternatives().conditional(
+        "isDelivery", {
+            is: true, 
+            then: orderAddressSchema.required(), 
+            otherwise: Joi.object().only().allow(null).default(null)
+        }
+    ),        
     document: Joi.alternatives().try(
         Joi.string().length(11).required(),
         Joi.string().length(14).required()
@@ -41,6 +47,20 @@ export const newOrderSchema = Joi.object().keys({
         id: Joi.string().trim().required()
     }).required(),
     deliveryTax: Joi.number().min(0).required(),
-    items: Joi.array(),
+    items: Joi.array().min(1).items(orderItemSchema).required(),
     status: Joi.string().only().allow(OrderStatus.PENDING).default(OrderStatus.PENDING)
+});
+
+export type QueryParamsOrder = {
+    companyId?: string;
+    beginDate?: Date;
+    endDate?: Date;
+    status?: OrderStatus;
+}
+
+export const searchParamsOrderQuerySchema = Joi.object().keys({
+    companyId: Joi.string().trim(),
+    beginDate: Joi.date(),
+    endDate: Joi.date(),
+    status: Joi.string().only().allow(...Object.values(OrderStatus))
 });
