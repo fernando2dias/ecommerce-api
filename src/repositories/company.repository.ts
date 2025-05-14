@@ -1,35 +1,21 @@
 import { CollectionReference, getFirestore } from "firebase-admin/firestore";
-import { Company } from "../models/company.model.js";
+import { Company, companyConverter } from "../models/company.model.js";
 
 export class CompanyRepository {
 
-    private collection: CollectionReference;
+    private collection: CollectionReference<Company>;
 
     constructor() {
-        this.collection = getFirestore().collection("companies");
+        this.collection = getFirestore().collection("companies").withConverter(companyConverter);
     }
     async getAll(): Promise<Company[]> {
-        const snapshot = await this.collection.get();
-        const companies = snapshot.docs.map(doc => {
-            return {
-                id: doc.id,
-                ...doc.data()
-            };
-        }) as Company[];
-
-        return companies;
+        const snapshot = await this.collection.get();   
+        return snapshot.docs.map(doc => doc.data());
     }
 
     async getById(id: string): Promise<Company | null> {
         const doc = await this.collection.doc(id).get();
-        if (doc.exists) {
-            return {
-                id: doc.id,
-                ...doc.data()
-            } as Company;
-        } else {
-            return null;
-        }
+        return doc.data() ?? null;
     }
 
     async save(company: Company): Promise<string> {
@@ -38,8 +24,9 @@ export class CompanyRepository {
     }
 
     async update(company: Company): Promise<void> {
-        let docRef = this.collection.doc(company.id);
-        await docRef.set(company);
+        await this.collection
+            .doc(company.id)
+            .set(company);
     }
 
     async delete(id: string): Promise<void> {

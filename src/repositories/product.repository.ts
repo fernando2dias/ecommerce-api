@@ -1,21 +1,21 @@
-import { CollectionReference, getFirestore, QuerySnapshot } from "firebase-admin/firestore";
-import { Product } from "../models/product.model.js";
+import { CollectionReference, getFirestore } from "firebase-admin/firestore";
+import { Product, productConverter } from "../models/product.model.js";
 
 export class ProductRepository {
 
-    private collection: CollectionReference;
+    private collection: CollectionReference<Product>;
 
     constructor() {
-        this.collection = getFirestore().collection("products");
+        this.collection = getFirestore().collection("products").withConverter(productConverter);
     }
     async getAll(): Promise<Product[]> {
         const snapshot = await this.collection.get();
-        return this.snapshotToArray(snapshot);
+        return snapshot.docs.map(doc => doc.data());
     }
 
     async search(categoryId: string): Promise<Product[]>{
         const snapshot = await this.collection.where("category.id", "==", categoryId).get();
-        return this.snapshotToArray(snapshot);
+        return snapshot.docs.map(doc => doc.data());
     }
 
     async getCountCategory(categoryId: string): Promise<number>{
@@ -25,14 +25,7 @@ export class ProductRepository {
 
     async getById(id: string): Promise<Product | null> {
         const doc = await this.collection.doc(id).get();
-        if (doc.exists) {
-            return {
-                id: doc.id,
-                ...doc.data()
-            } as Product;
-        } else {
-            return null;
-        }
+        return doc.data() ?? null;
     }
 
     async save(product: Product): Promise<string> {
@@ -41,27 +34,12 @@ export class ProductRepository {
     }
 
     async update(product: Product): Promise<void> {
-        let docRef = this.collection.doc(product.id);
-        await docRef.set({
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            image: product.image,
-            category: product.category,
-            active: product.active
-        });
+        await this.collection
+            .doc(product.id)
+            .set(product);
     }
 
     async delete(id: string): Promise<void> {
         await this.collection.doc(id).delete();
-    }
-
-    private snapshotToArray(snapshot: QuerySnapshot): Product[]{
-        return snapshot.docs.map(doc => {
-            return {
-                id: doc.id,
-                ...doc.data()
-            };
-        }) as Product[];
     }
 }
