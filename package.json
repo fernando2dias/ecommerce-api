@@ -16,6 +16,7 @@
   "description": "",
   "dependencies": {
     "celebrate": "^15.0.3",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",
     "ecommerce-api": "file:",
     "express": "^4.21.2",
