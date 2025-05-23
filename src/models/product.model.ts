@@ -59,7 +59,9 @@ export const productConverter: FirestoreDataConverter<Product> ={
             price: product.price,
             image: product.image,
             category: {
-                id: product.category.id
+                id: product.category.id,
+                description: product.category.description,
+                active: product.category.active
             },
             active: product.active
         };
