@@ -1,6 +1,7 @@
 import { NotFoundError } from "../errors/not-found.error.js";
 import { ValidationError } from "../errors/validation.error.js";
-import { Order, QueryParamsOrder } from "../models/order.model.js";
+import { OrderItem } from "../models/ordem-item.model.js";
+import { Order, OrderStatus, QueryParamsOrder } from "../models/order.model.js";
 import { CompanyRepository } from "../repositories/company.repository.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import { PaymentMethodRepository } from "../repositories/payment-method.repository.js";
@@ -34,7 +35,7 @@ export class OrderService {
             }
             order.paymentMethod = paymentMethod;
 
-            for (const item of order.items) {
+            for (const item of order.items!) {
                 const product = await this.productRepository.getById(item.product.id!);
                 if (!product) {
                     throw new NotFoundError("Product not found");
@@ -52,6 +53,32 @@ export class OrderService {
 
     async search(query: QueryParamsOrder): Promise<Order[]> {
         return await this.orderRepository.search(query);
+    }
+
+    async getItems(orderId: string): Promise<OrderItem[]> {
+        const items = await this.orderRepository.getItems(orderId);
+        if (!items) {
+            throw new NotFoundError("Order not found");
+        }
+        return items;
+    }
+
+    async getById(orderId: string): Promise<Order> {
+        const order = await this.orderRepository.getById(orderId);
+        if (!order) {
+            throw new NotFoundError("Order not found");
+        }
+        return order;
+    }
+
+    async changeStatus(orderId: string, status: OrderStatus) {
+        const order = await this.getById(orderId);
+        
+        if (!order) {
+            throw new NotFoundError("Order not found");
+        }
+        await this.orderRepository.changeStatus(orderId, status);
+        //TODO: criar regras de status depois.
     }
 
 }

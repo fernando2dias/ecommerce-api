@@ -16,23 +16,34 @@ export class Order {
     isDelivery: boolean;
     paymentMethod: PaymentMethod;
     deliveryTax: number;
-    items: OrderItem[];
+    items?: OrderItem[];
     status: OrderStatus;
     observation: string;
+    subtotal: number;
+    total: number;
 
     constructor(data: any){
         this.id = data.id;
-        this.company = data.company;
+        this.company = new Company(data.company);
         this.customer = data.customer;
         this.address = data.address;
         this.document = data.document;
         this.date = data.date instanceof Timestamp ? data.date.toDate() : data.date;
         this.isDelivery = data.isDelivery;
-        this.paymentMethod = data.paymentMethod;
+        this.paymentMethod = new PaymentMethod(data.paymentMethod);
         this.deliveryTax = data.deliveryTax;
-        this.items = data.items;
+        this.items = data.items?.map((item: any) => new OrderItem(item)) ?? [];
         this.status = data.status ?? OrderStatus.PENDING;
         this.observation = data.observation ?? null;
+        this.subtotal = data.subtotal ?? 0;
+        this.total = data.total ?? 0;
+    }
+
+    getSubTotal(): number {
+        return this.items?.map(item => item.getTotal()).reduce((total, next) => total + next, 0) ?? 0;
+    }
+    getTotal(): number {
+        return this.getSubTotal() + (this.isDelivery ? this.deliveryTax : 0);
     }
 
 }
@@ -85,6 +96,15 @@ export const searchParamsOrderQuerySchema = Joi.object().keys({
     status: Joi.string().only().allow(...Object.values(OrderStatus))
 });
 
+export const changeStatusOrderSchema = Joi.object().keys({
+    status: Joi.string().only().allow(
+        OrderStatus.APPROVED,
+        OrderStatus.DELIVERY,
+        OrderStatus.COMPLETED,
+        OrderStatus.CANCELED
+    ).required()
+});
+
 export const orderConverter: FirestoreDataConverter<Order> = {
     toFirestore: (order: Order): DocumentData => {
         return {
@@ -117,23 +137,10 @@ export const orderConverter: FirestoreDataConverter<Order> = {
                 description: order.paymentMethod.description
             },
             deliveryTax: order.deliveryTax,
-            items: order.items.map(item => ({
-                product: {
-                    id: item.product.id,
-                    name: item.product.name,
-                    description: item.product.description,
-                    price: item.product.price,
-                    image: item.product.image,
-                    category: {
-                        id: item.product.category.id,
-                        description: item.product.category.description
-                    }
-                },
-                quantity: item.quantity,
-                observation: item.observation
-            })),
             status: order.status,
-            observation: order.observation
+            observation: order.observation,
+            subTotal: order.getSubTotal(),
+            total: order.getTotal(),
         };
     },
     fromFirestore: (snapshot: QueryDocumentSnapshot): Order => {

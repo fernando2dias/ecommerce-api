@@ -1,6 +1,8 @@
 import { CollectionReference, getFirestore } from "firebase-admin/firestore";
-import { Order, orderConverter, QueryParamsOrder } from "../models/order.model.js";
+import { Order, orderConverter, OrderStatus, QueryParamsOrder } from "../models/order.model.js";
 import dayjs from "dayjs";
+import { OrderItem, orderItemConverter } from "../models/ordem-item.model.js";
+import { NotFoundError } from "../errors/not-found.error.js";
 
 export class OrderRepository {
     private collection: CollectionReference<Order>;
@@ -10,7 +12,16 @@ export class OrderRepository {
     }
 
     async save(order: Order) {
-        await this.collection.add(order);
+        const batch = getFirestore().batch();
+        const orderRef = await this.collection.doc();
+        batch.create(orderRef, order);
+
+        const itemsRef = orderRef.collection("items").withConverter(orderItemConverter);
+        for(let item of order.items!) {
+            batch.create(itemsRef.doc(), item);
+        }
+        await batch.commit();
+
     }
 
     async search(queryParams: QueryParamsOrder): Promise<Order[]> {
@@ -42,5 +53,29 @@ export class OrderRepository {
         const snapshot = await query.get();
 
         return snapshot.docs.map(doc => doc.data());
+    }
+
+    async getItems(orderId: string): Promise<OrderItem[]> {
+        const orderRef = await this.collection.doc(orderId);
+        const snapshot = await orderRef.collection("items").withConverter(orderItemConverter).get();
+        return snapshot.docs.map(doc => doc.data());
+    }
+
+    async getById(orderId: string): Promise<Order> {
+        const order = (await this.collection.doc(orderId).get()).data();
+        
+        if (!order) {
+            throw new NotFoundError("Order not found");
+        }
+
+        order.items = await this.getItems(orderId);
+        return order;
+    }
+
+    async changeStatus(orderId: string, status: OrderStatus){
+        this.collection
+        .withConverter(null)
+        .doc(orderId)
+        .set({status: status}, {merge: true})
     }
 }

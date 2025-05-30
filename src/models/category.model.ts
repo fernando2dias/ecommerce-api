@@ -6,7 +6,7 @@ export class Category {
     description: string;
     active: boolean;
 
-    constructor(data: Category | any) {
+    constructor(data: Category | any = {}) {
         this.id = data.id;
         this.description = data.description;
         this.active = data.active ?? true;
